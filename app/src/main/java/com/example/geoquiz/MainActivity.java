@@ -13,21 +13,12 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
+    private final String KEY_INDEX = "index";
     private Button mTrueButton;
     private Button mFalseButton;
     private Button mNextButton;
     private TextView mQuestionTextView;
     private QuizViewModel mQuizViewModel;
-
-    private Question[] mQuestionBank = {
-            new Question(R.string.question_australia, true),
-            new Question(R.string.question_oceans, true),
-            new Question(R.string.question_mideast, false),
-            new Question(R.string.question_africa, false),
-            new Question(R.string.question_americas, true),
-            new Question(R.string.question_asia, true)
-    };
-    private int mCurrentIndex = 0;
 
 
 
@@ -41,6 +32,11 @@ public class MainActivity extends AppCompatActivity {
         mQuizViewModel = provider.get(QuizViewModel.class);
         Log.d(TAG, "Got a QuizViewModel: $quizViewModel");
 
+        if (savedInstanceState != null) {
+            mQuizViewModel.mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+        } else {
+            mQuizViewModel.mCurrentIndex = 0;
+        }
 
         mTrueButton = (Button)findViewById(R.id.trueButton);
         mFalseButton = (Button)findViewById(R.id.falseButton);
@@ -64,12 +60,20 @@ public class MainActivity extends AppCompatActivity {
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                mQuizViewModel.moveToNext();
                updateQuestion();
             }
         });
         updateQuestion();
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        Log.i(TAG, "onSaveInstanceState");
+        savedInstanceState.putInt(KEY_INDEX, mQuizViewModel.mCurrentIndex);
+    }
+
 
     @Override
     public void onStart() {
@@ -99,11 +103,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateQuestion(){
-        int questionTextResId = mQuestionBank[mCurrentIndex].getTextResId();
+        int questionTextResId = mQuizViewModel.currentQuestionText();
         mQuestionTextView.setText(questionTextResId);
     }
     private void checkAnswer(boolean answer) {
-        boolean correctAnswer = mQuestionBank[mCurrentIndex].isAnswer();
+        boolean correctAnswer = mQuizViewModel.currentQuestionAnswer();
         if (answer == correctAnswer) {
             Toast.makeText(this, R.string.toastTrue, Toast.LENGTH_SHORT).show();
         } else {
