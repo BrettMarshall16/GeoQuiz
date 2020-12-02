@@ -1,6 +1,8 @@
 package com.example.geoquiz;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mFalseButton;
     private Button mNextButton;
     private TextView mQuestionTextView;
+    private QuizViewModel mQuizViewModel;
 
     private Question[] mQuestionBank = {
             new Question(R.string.question_australia, true),
@@ -33,6 +36,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_main);
+
+        ViewModelProvider provider = ViewModelProviders.of(this);
+        mQuizViewModel = provider.get(QuizViewModel.class);
+        Log.d(TAG, "Got a QuizViewModel: $quizViewModel");
+
 
         mTrueButton = (Button)findViewById(R.id.trueButton);
         mFalseButton = (Button)findViewById(R.id.falseButton);
