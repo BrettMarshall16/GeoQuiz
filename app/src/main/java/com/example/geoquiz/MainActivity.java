@@ -1,9 +1,12 @@
 package com.example.geoquiz;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,8 +20,10 @@ public class MainActivity extends AppCompatActivity {
     private Button mTrueButton;
     private Button mFalseButton;
     private Button mNextButton;
+    private Button mCheatButton;
     private TextView mQuestionTextView;
     private QuizViewModel mQuizViewModel;
+    private final int REQUEST_CODE_CHEAT = 0;
 
 
 
@@ -41,7 +46,9 @@ public class MainActivity extends AppCompatActivity {
         mTrueButton = (Button)findViewById(R.id.trueButton);
         mFalseButton = (Button)findViewById(R.id.falseButton);
         mNextButton = (Button)findViewById(R.id.next);
+        mCheatButton = findViewById(R.id.cheat_button);
         mQuestionTextView = findViewById(R.id.question_text_view);
+
 
         mTrueButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,8 +71,19 @@ public class MainActivity extends AppCompatActivity {
                updateQuestion();
             }
         });
+
+        mCheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean answerIsTrue = mQuizViewModel.currentQuestionAnswer();
+                Intent intent = CheatActivity.newIntent(MainActivity.this, answerIsTrue);
+                startActivityForResult(intent, REQUEST_CODE_CHEAT);
+            }
+        });
+
         updateQuestion();
     }
+
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -108,10 +126,27 @@ public class MainActivity extends AppCompatActivity {
     }
     private void checkAnswer(boolean answer) {
         boolean correctAnswer = mQuizViewModel.currentQuestionAnswer();
-        if (answer == correctAnswer) {
+        if (mQuizViewModel.isCheater()) {
+            Toast.makeText(this, R.string.judgment_toast, Toast.LENGTH_SHORT).show();}
+        else if (answer == correctAnswer) {
             Toast.makeText(this, R.string.toastTrue, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, R.string.toastFalse, Toast.LENGTH_SHORT).show();
         }
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+        if (requestCode == REQUEST_CODE_CHEAT) {
+            if (data != null) {
+                mQuizViewModel.setIsCheater(
+                        data.getBooleanExtra(CheatActivity.EXTRA_ANSWER_SHOWN, false));
+            }
+        }
+    }
+
+
 }
